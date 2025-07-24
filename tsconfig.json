@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "preserveConstEnums": true,
+    "lib": [ "ES2018", "dom" ],
+    "sourceMap": true,
+    "outDir": "dist",
+    "strictNullChecks": true,
+    "target": "es2018"
+  },
+  "include": ["src/**/*"]
+}
