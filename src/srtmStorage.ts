@@ -3,6 +3,15 @@ import path from 'path';
 import { open, unlink, access } from 'fs.promises';
 import StorageInterface from './storageInterface';
 
+function arrayBufferToBuffer(arrayBuffer: ArrayBuffer): Buffer {
+  const buffer = Buffer.alloc(arrayBuffer.byteLength);
+  const view = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < buffer.length; ++i) {
+    buffer[i] = view[i];
+  }
+  return buffer;
+}
+
 export default class srtmStorage implements StorageInterface {
   dirPath: string;
   constructor(dirPath: string) {
@@ -54,7 +63,7 @@ export default class srtmStorage implements StorageInterface {
   async writeTile(tile: string, data: ArrayBuffer): Promise<void> {
     const fd = await open(this.getPath(tile), 'w');
     try {
-      const buf = await fd.writeFile(data);
+      const buf = await fd.writeFile(arrayBufferToBuffer(data));
     } finally {
       await fd.close();
     }

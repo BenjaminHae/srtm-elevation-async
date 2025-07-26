@@ -91,11 +91,11 @@ export default class SyncTileSet{
 
   getElevation(ll:LatLng) {
     const tileLat = Math.floor(ll.lat),
-        tileLng = Math.floor(ll.lat);
+        tileLng = Math.floor(ll.lng);
 
     if (tileLat < this.south || tileLat >= this.north ||
         tileLng < this.west || tileLng >= this.east) {
-        throw new Error('Coordinate is outside tileset\'s bounds: ' + ll);
+        throw new Error('Coordinate is outside tileset\'s bounds: ' + ll + `bounds: [${this.south}, ${this.west}],[${this.north}, ${this.east}]`);
     }
 
     return this.tiles[tileLat - this.south][tileLng - this.west].getElevation(ll);

@@ -105,7 +105,7 @@ export default class SRTMDownloader {
         this.downloads[tileKey] = this._download(url);
         const zipped = await this.downloads[tileKey];
         const data = await this.unzip(zipped)
-        await this.storage.writeTile(tileKey, data);
+        await this.storage.writeTile(tileKey+'.hgt', data);
       } finally {
         cleanup();
       }
