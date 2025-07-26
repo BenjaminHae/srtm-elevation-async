@@ -1,5 +1,5 @@
 import StorageInterface from './storageInterface';
-import srtmDb from './srtm-db';
+import srtmDb from './srtmDb';
 import LatLng from './latLng';
 import {
   BlobReader,
@@ -8,8 +8,15 @@ import {
   ZipReader
 } from '@zip.js/zip.js';
 
-interface SRTMDownloaderOptions {
-  provider?: string;
+export interface SRTMDownloaderOptions {
+  provider: string;
+  username?: string;
+  password?: string;
+  _cookie?: string;
+}
+
+interface SRTMDownloaderOptionsInternal {
+  provider: string;
   username?: string;
   password?: string;
   _cookie?: string;
@@ -20,7 +27,7 @@ export default class SRTMDownloader {
   timeout: number;
   downloads: {[index: string]: Promise<any>}; // todo type
   storage: StorageInterface;
-  constructor(storage: StorageInterface, options: SRTMDownloaderOptions = {}) {
+  constructor(storage: StorageInterface, options?: SRTMDownloaderOptions) {
     this.options = Object.assign({
         provider: 'https://srtm.fasma.org/{lat}{lng}.SRTMGL3S.hgt.zip',
         username: null, // Earthdata username
@@ -35,18 +42,19 @@ export default class SRTMDownloader {
   async init(tileKey: string): Promise<void> {
     var url = this.getUrl(tileKey);
 
-    if(url === null) {
+    if(!url) {
         throw new Error("Missing url");
     }
 
     if(this.options.provider.indexOf("usgs.gov") !== -1 && this.options.username && this.options.password && !this.options._cookie) {
-        const auth = "Basic " + Buffer.from(this.options.username + ":" + this.options.password).toString("base64");
+        const enc = new TextEncoder();
+        const auth = "Basic " + btoa(String.fromCharCode(...new Uint8Array(enc.encode(this.options.username + ":" + this.options.password).buffer)));
         let res = await fetch(url, {
-                timeout: this._timeout,
+                signal: AbortSignal.timeout(this.timeout),
                 redirect: 'manual'
             });
     
-        const authorizeUrl = res.headers.raw()['location'];
+        const authorizeUrl = res.headers.get('location');
         if(!authorizeUrl) {
             throw new Error("Missing authorization url");
         }
@@ -54,20 +62,20 @@ export default class SRTMDownloader {
             headers : {
                 "Authorization": auth
             },
-            timeout: this._timeout,
+            signal: AbortSignal.timeout(this.timeout),
             redirect: 'manual'
         });
 
-        const oauthUrl = res.headers.raw()['location'];
+        const oauthUrl = res.headers.get('location');
         if(!oauthUrl) {
             throw new Error("Missing oauth url");
         }
         res = await fetch(oauthUrl[0], {
-            timeout: this._timeout,
+            signal: AbortSignal.timeout(this.timeout),
             redirect: 'manual'
         });
 
-        const cookie = res.headers.raw()['set-cookie'];
+        const cookie = res.headers.get('set-cookie');
         if(!cookie) {
             throw new Error("Missing cookie");
         }
@@ -79,23 +87,23 @@ export default class SRTMDownloader {
   // do we need latLng?
   async download(tileKey: string, latLng: LatLng): Promise<void>{
     const cleanup = () => {
-        delete this._downloads[tileKey];
+        delete this.downloads[tileKey];
     }
 
     const url = this.getUrl(tileKey);
 
-    if(url === null) {
+    if(!url) {
         return;
     }
 
     // todo: do we need to return this?
-    const download = this._downloads[tileKey];
+    const download = this.downloads[tileKey];
 
     if (!download) {
       try {
         const zipfile = url.substring(url.lastIndexOf('/') + 1);
-        this._downloads[tileKey] = this._download(url);
-        const zipped = await this._downloads[tileKey];
+        this.downloads[tileKey] = this._download(url);
+        const zipped = await this.downloads[tileKey];
         const data = await this.unzip(zipped)
         await this.storage.writeTile(tileKey, data);
       } finally {
@@ -104,8 +112,8 @@ export default class SRTMDownloader {
     }
   }
 
-  getUrl(tileKey: string): string {
-    let url = null;
+  getUrl(tileKey: string): string|undefined {
+    let url:string|undefined;
     if(srtmDb.includes(tileKey)) {
       const lat = tileKey.substr(0, 3);
       const lng = tileKey.substr(3, 4);
@@ -115,25 +123,26 @@ export default class SRTMDownloader {
   }
 
   async _download(url: string):Promise<Blob> { // todo
-    let _options = {};
-    _options.timeout = this._timeout;
+    let _options: RequestInit = {};
+    _options.signal = AbortSignal.timeout(this.timeout),
     _options.headers = {};
     if(this.options._cookie) {
         _options.headers['Cookie'] = this.options._cookie;
     }
+    let response;
     try {
-        const response = await fetch(url, _options);
+        response = await fetch(url, _options);
         if(response.status === 200) {
             return await response.blob();
         } else {
             throw new Error("Error downloading file");
         }
     } catch(err) {
-        throw new Error(err || response.headers['www-authenticate'] || response);
+        throw new Error(err || response?.headers['www-authenticate'] || response);
     }
   }
 
-  async unzip(zipFileBlog: Blob): Promise<> {
+  async unzip(zipFileBlob: Blob): Promise<ArrayBuffer> {
     const zipFileReader = new BlobReader(zipFileBlob);
     // Creates a TextWriter object where the content of the first entry in the zip
     // will be written.
@@ -146,8 +155,9 @@ export default class SRTMDownloader {
     // content via `helloWorldWriter`, and closes the reader.
     const zipReader = new ZipReader(zipFileReader);
     const firstEntry = (await zipReader.getEntries()).shift();
-    const data = await firstEntry.getData(tileWriter);
-    await zipReader.close();
-    return data;
+    if (!firstEntry?.getData) {
+      throw new Error('Zip file not readable');
+    }
+    return await firstEntry?.arrayBuffer();
   }
 }

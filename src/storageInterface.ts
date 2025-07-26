@@ -1,7 +1,7 @@
 export default interface Storage {
-  hasTile(tile): Promise<boolean>;
-  getTileSize(tile): Promise<number>;
-  readTile(tile): Promise<DataView>;
-  writeTile(tile, data): Promise<void>;
-  remove(tile): Promise<void>;
+  hasTile(tile: string): Promise<boolean>;
+  getTileSize(tile: string): Promise<number>;
+  readTile(tile: string): Promise<DataView>;
+  writeTile(tile: string, data): Promise<void>;
+  remove(tile: string): Promise<void>;
 }
