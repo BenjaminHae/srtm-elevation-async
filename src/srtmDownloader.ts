@@ -39,8 +39,8 @@ export default class SRTMDownloader {
     this.downloads = {};
   }
 
-  async init(tileKey: string): Promise<void> {
-    var url = this.getUrl(tileKey);
+  async init(): Promise<void> {
+    var url = this.getUrl("N00E006");
 
     if(!url) {
         throw new Error("Missing url");
