@@ -1,6 +1,6 @@
 {
   "name": "srtm-elevation-async",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {
     "build": "tsc -p .",
     "start": "npm run build && node dist/test.js",
@@ -8,7 +8,9 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "author": "Benjamin Häublein",
   "license": "ISC",
   "description": "",
@@ -18,9 +20,6 @@
   },
   "dependencies": {
     "@zip.js/zip.js": "^2.7.68",
-    "fs": "^0.0.1-security",
-    "fs.promises": "^0.1.2",
-    "lru-cache": "^11.1.0",
-    "path": "^0.12.7"
+    "lru-cache": "^11.1.0"
   }
 }
