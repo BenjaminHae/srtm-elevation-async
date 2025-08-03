@@ -80,7 +80,7 @@ export default class SRTMDownloader {
         if(!cookie) {
             throw new Error("Missing cookie");
         }
-        this.options._cookie = cookie[0];
+        this.options._cookie = cookie;
     }
   }
 
@@ -136,7 +136,7 @@ export default class SRTMDownloader {
         if(response.status === 200) {
             return await response.blob();
         } else {
-            throw new Error("Error downloading file");
+            throw new Error(`Error downloading file, HTTP Status ${response.status}`);
         }
     } catch(err) {
         throw new Error(err || response?.headers['www-authenticate'] || response);
