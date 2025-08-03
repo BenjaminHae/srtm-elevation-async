@@ -6,9 +6,9 @@ import Tile from './Tile';
 import StorageInterface from './storageInterface';
 
 function range(start, end: number): Array<number> {
-    var a = Array.apply(0, new Array(end - start + 1));
-    a.forEach(function(e, i) { a[i] = start + i; });
-    return a;
+  const a = Array.apply(0, new Array(end - start + 1));
+  a.forEach(function(e, i) { a[i] = start + i; });
+  return a;
 }
 
 interface SyncTileSetOptions extends SRTMDownloaderOptions {
@@ -42,9 +42,9 @@ export default class SyncTileSet{
     }, options);
     const pad = this.options.pad;
     this.storage = storage;
-    this.south = Math.floor(sw.lat) - pad,
-    this.north = Math.floor(ne.lat) + 1 + pad,
-    this.west = Math.floor(sw.lng) - pad,
+    this.south = Math.floor(sw.lat) - pad;
+    this.north = Math.floor(ne.lat) + 1 + pad;
+    this.west = Math.floor(sw.lng) - pad;
     this.east = Math.floor(ne.lng) + 1 + pad;
     this.tiles = new Array(this.north - this.south);
   }
@@ -53,7 +53,6 @@ export default class SyncTileSet{
     const rangeSN = range(this.south, this.north - 1);
     const rangeWE = range(this.west, this.east - 1);
 
-    let missingTiles = 0;
     const allTilesCached = await this.countMissingTilesForRanges(rangeSN, rangeWE) == 0;
     
     if(!allTilesCached) {

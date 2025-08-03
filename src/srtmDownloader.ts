@@ -1,21 +1,11 @@
 import StorageInterface from './storageInterface';
 import srtmDb from './srtmDb';
-import LatLng from './latLng';
 import {
   BlobReader,
-  TextReader,
-  TextWriter,
   ZipReader
 } from '@zip.js/zip.js';
 
 export interface SRTMDownloaderOptions {
-  provider: string;
-  username?: string;
-  password?: string;
-  _cookie?: string;
-}
-
-interface SRTMDownloaderOptionsInternal {
   provider: string;
   username?: string;
   password?: string;
@@ -40,7 +30,7 @@ export default class SRTMDownloader {
   }
 
   async init(): Promise<void> {
-    var url = this.getUrl("N00E006");
+    const url = this.getUrl("N00E006");
     console.log(url);
 
     if(!url) {
@@ -86,7 +76,7 @@ export default class SRTMDownloader {
 
   // for calls with the same tileKey, only the first one blocks, all other resolve immediately
   // do we need latLng?
-  async download(tileKey: string, latLng: LatLng): Promise<void>{
+  async download(tileKey: string): Promise<void>{
     const cleanup = () => {
         delete this.downloads[tileKey];
     }
@@ -102,7 +92,6 @@ export default class SRTMDownloader {
 
     if (!download) {
       try {
-        const zipfile = url.substring(url.lastIndexOf('/') + 1);
         this.downloads[tileKey] = this._download(url);
         const zipped = await this.downloads[tileKey];
         const data = await this.unzip(zipped)
@@ -124,8 +113,8 @@ export default class SRTMDownloader {
   }
 
   async _download(url: string):Promise<Blob> { // todo
-    let _options: RequestInit = {};
-    _options.signal = AbortSignal.timeout(this.timeout),
+    const _options: RequestInit = {};
+    _options.signal = AbortSignal.timeout(this.timeout);
     _options.headers = {};
     if(this.options._cookie) {
         _options.headers['Cookie'] = this.options._cookie;
@@ -145,11 +134,6 @@ export default class SRTMDownloader {
 
   async unzip(zipFileBlob: Blob): Promise<ArrayBuffer> {
     const zipFileReader = new BlobReader(zipFileBlob);
-    // Creates a TextWriter object where the content of the first entry in the zip
-    // will be written.
-    // maybe use https://gildas-lormeau.github.io/zip.js/api/classes/Reader.html
-    // or https://gildas-lormeau.github.io/zip.js/api/classes/Uint8ArrayReader.html
-    const tileWriter = new TextWriter();
     
     // Creates a ZipReader object reading the zip content via `zipFileReader`,
     // retrieves metadata (name, dates, etc.) of the first entry, retrieves its

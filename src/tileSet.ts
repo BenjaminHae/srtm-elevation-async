@@ -46,8 +46,8 @@ export default class TileSet {
     }
     return await tile.getElevation(latLng);
   }
-  async loadTile(tileKey: string, latLng: LatLng): Promise<Tile> {
-    return new Promise(async (resolve: (tile: Tile)=> void, reject) => {
+  loadTile(tileKey: string, latLng: LatLng): Promise<Tile> {
+    return new Promise(async (resolve: (tile: Tile)=> void) => {
       let loadQueue = this.loadingTiles[tileKey];
       if (!loadQueue) {
         loadQueue = [];
