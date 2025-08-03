@@ -41,6 +41,7 @@ export default class SRTMDownloader {
 
   async init(): Promise<void> {
     var url = this.getUrl("N00E006");
+    console.log(url);
 
     if(!url) {
         throw new Error("Missing url");
@@ -58,7 +59,7 @@ export default class SRTMDownloader {
         if(!authorizeUrl) {
             throw new Error("Missing authorization url");
         }
-        res = await fetch(authorizeUrl[0], {
+        res = await fetch(authorizeUrl, {
             headers : {
                 "Authorization": auth
             },
@@ -70,7 +71,7 @@ export default class SRTMDownloader {
         if(!oauthUrl) {
             throw new Error("Missing oauth url");
         }
-        res = await fetch(oauthUrl[0], {
+        res = await fetch(oauthUrl, {
             signal: AbortSignal.timeout(this.timeout),
             redirect: 'manual'
         });
