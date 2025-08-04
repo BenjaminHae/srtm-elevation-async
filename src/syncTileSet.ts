@@ -11,7 +11,7 @@ function range(start, end: number): Array<number> {
   return a;
 }
 
-interface SyncTileSetOptions extends SRTMDownloaderOptions {
+export interface SyncTileSetOptions extends SRTMDownloaderOptions {
   loadTile?: (storage: StorageInterface, latLng: LatLng, downloader?: any) => Promise<Tile>;
   downloader?: SRTMDownloader;
   pad?: number;
