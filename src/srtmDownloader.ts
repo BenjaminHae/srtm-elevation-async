@@ -31,7 +31,6 @@ export default class SRTMDownloader {
 
   async init(): Promise<void> {
     const url = this.getUrl("N00E006");
-    console.log(url);
 
     if(!url) {
         throw new Error("Missing url");
